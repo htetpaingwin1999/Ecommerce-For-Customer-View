@@ -1,118 +1,172 @@
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
+import Header from "../components/Header";
+import Featured from "../components/Featured";
+import {Product} from "../models/Product";
+import {Author} from "../models/Author";
+import {Category} from "../models/Category";
 
-const inter = Inter({ subsets: ['latin'] })
+import {mongooseConnect} from "../lib/mongoose";
+import NewProducts from "../components/NewProducts";
+import { AuthProvider, useAuth } from '../components/Form/AuthContext';
+import { useContext, useEffect } from "react";
+import BestSeller from "../components/BestSeller";
+import { getTop10BestSellers } from "./bestSellersModule";
+import { SearchContext, SearchContextProvider } from "../components/SearchContext";
+import { useRouter } from 'next/router';
 
-export default function Home() {
+export default function HomePage({
+  featuredProduct,
+  newProducts, 
+  bestSellersWeekProducts,
+  productsInChildLiteratureCategory,
+  productsInWorldPoliticsCategory,
+  productsInFictionCategory,
+  productsProducedInSakeKuuChooPublishedBook,
+  productsMatchingSearch,
+  isSearch,
+}) {
+  const { jwtToken } = useAuth();
+  const { searchData } = useContext(SearchContext);
+  const router = useRouter();
+  useEffect(() => {
+    console.log("All Products");
+  }, [jwtToken]);  
+
+  useEffect(() => {
+    console.log("Search value "+searchData);
+    console.log("Product Matching");
+    console.log(productsMatchingSearch);
+    if (productsMatchingSearch.length > 0) {
+      router.push(`/product/${productsMatchingSearch[0]._id}`);
+    }
+  },[])
   return (
-    <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
-    >
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">pages/index.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+    <div>
+      <Header />
+      {isSearch ?  
+        <>
+          {productsMatchingSearch.length>0 ? 
+            <> 
+            </>
+            :
+            <>
+             <p
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '200px', // Optional: Set a fixed height to center vertically within the viewport
+                }}
+              >
+             အားနာပါတယ်၊ သင်ရှာဖွေလိုသော စာအုပ်မရှိပါ။ 
+             </p>
+            </>
+          }         
+        </>
+          :
+        <>
+          <Featured product={featuredProduct} />
+          {bestSellersWeekProducts.length >0 && (
+            <BestSeller products={bestSellersWeekProducts} />
+          )}
+          <NewProducts products={newProducts} text="အသစ်ထွက်ရှိသောစာအုပ်များ"/>
+          <NewProducts products={productsInChildLiteratureCategory} text= "ကလေးစာအုပ်များ"/>
+          <NewProducts products={productsInWorldPoliticsCategory} text= "ကမ္ဘာ့နိုင်ငံရေးစာအုပ်များ"/>
+          <NewProducts products={productsInFictionCategory} text= "ရသစာပေများ"/>
+          <NewProducts products={productsProducedInSakeKuuChooPublishedBook} text= "စိတ်ကူးချိုချိုစာအုပ်တိုက်မှ စာအုပ်များ"/>
+        </> 
+      }
+      
+      
+    </div>
+  );
+}
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+export async function getServerSideProps(context) {
+  const featuredProductId = '640de2b12aa291ebdf213d48';
+  await mongooseConnect();
+  const featuredProduct = await Product.findById(featuredProductId);
+  const newProducts = await Product.find({}, null, {sort: {'_id':-1}, limit:20});
+  // const allProducts = await Product.find({})
+  // .sort({ _id: -1 })
+  // .populate('category', 'name') // Populate the 'category' field and select only the 'name' field
+  // .populate('author', 'name'); // Populate the 'category' field and select only the 'name' field
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Discover and deploy boilerplate example Next.js&nbsp;projects.
-          </p>
-        </a>
+  const { bestSellersWeek } = await getTop10BestSellers();
+  const bestSellersWeekProducts = await Promise.all(
+    bestSellersWeek.map(async (product) => {
+      const productData = await Product.findById(product._id);
+      return JSON.parse(JSON.stringify(productData));
+    })
+  );
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+  // const newProducts = await Product.find({}, null, {sort: {'_id':-1}});
+  
+  // const currentDate = new Date();
+  // currentDate.setHours(0, 0, 0, 0); // Set the time to 00:00:00:000
+
+  // const newProducts = await Product.find(
+  //   { createdAt: { $gte: currentDate } },
+  //   null,
+  //   { sort: { _id: -1 } }
+  // );
+
+  const childLiteratureBookByCategory = '649846d8ff8b88bab79214c0'; // Replace with your actual category ID
+  const productsInChildLiteratureCategory = await Product.find({ category: childLiteratureBookByCategory })
+  .sort({ _id: -1 }) // Sort the products by ID in descending order
+  .limit(4); // Limit the results to 20 products (you can adjust this limit)
+
+  const bigorayBookByCategory = '64a296a17e2b797ccdb02d67';
+  const productsInBiographyLiteratureCategory = await Product.find({ category: bigorayBookByCategory })
+  .sort({ _id: -1 }) // Sort the products by ID in descending order
+  .limit(4); // Limit the results to 20 products (you can adjust this limit)
+
+  const worldPoliciticBookByCategory = '64a2976e7e2b797ccdb02d6f';
+  const productsInWorldPoliticsCategory = await Product.find({ category: worldPoliciticBookByCategory })
+  .sort({ _id: -1 }) // Sort the products by ID in descending order
+  .limit(4); // Limit the results to 20 products (you can adjust this limit)
+
+  const fitctionBookByCategory = '64a44d580bd2959f546d7f41';
+  const productsInFictionCategory = await Product.find({ category: fitctionBookByCategory })
+  .sort({ _id: -1 }) // Sort the products by ID in descending order
+  .limit(4); 
+
+  const SakeKuuChoChoPublishedBook = 'စိတ်ကူးချိုချိုစာပေ';
+  const productsProducedInSakeKuuChooPublishedBook = await Product.find({ published_place: SakeKuuChoChoPublishedBook })
+  .sort({ _id: -1 }) // Sort the products by ID in descending order
+  .limit(4); 
+
+  const searchData = context.query.searchData;
+
+  const isSearch = searchData? true: false;
+  // Create a regular expression to perform a "like" search
+  const searchRegex = new RegExp(searchData, 'i'); // 'i' for case-insensitive search
+
+  // Find products that match the search query using the regular expression
+  let productsMatchingSearch = [];
+  if (searchData) { // Check if searchData is not empty
+    productsMatchingSearch = await Product.find({
+      title: searchData,
+    }).sort({ _id: -1 }) // Sort the products by ID in descending order
+    .limit(4); 
+  }
+
+
+  return {
+    props: {
+      featuredProduct: JSON.parse(JSON.stringify(featuredProduct)),
+      newProducts: JSON.parse(JSON.stringify(newProducts)),
+      productsInChildLiteratureCategory: JSON.parse(JSON.stringify(productsInChildLiteratureCategory)),
+      productsInBiographyLiteratureCategory: JSON.parse(JSON.stringify(productsInBiographyLiteratureCategory)),
+      productsInWorldPoliticsCategory: JSON.parse(JSON.stringify(productsInWorldPoliticsCategory)),
+      productsInFictionCategory: JSON.parse(JSON.stringify(productsInFictionCategory)),
+      productsProducedInSakeKuuChooPublishedBook: JSON.parse(JSON.stringify(productsProducedInSakeKuuChooPublishedBook)), 
+      // allProducts: JSON.parse(JSON.stringify(allProducts)),
+      bestSellersWeek: JSON.parse(JSON.stringify(bestSellersWeek)),
+      bestSellersWeekProducts: bestSellersWeekProducts,
+      productsMatchingSearch: JSON.parse(JSON.stringify(productsMatchingSearch)),
+      isSearch
+    },
+  };
 }

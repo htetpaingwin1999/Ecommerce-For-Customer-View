@@ -1,0 +1,403 @@
+import Link from "next/link";
+import styled from "styled-components";
+import Center from "../components/Center";
+import { useContext, useEffect, useState } from "react";
+import { CartContext } from "../components/CartContext";
+import BarsIcon from "../components/icons/Bars";
+import axios from "axios";
+import { AiFillHeart } from 'react-icons/ai';
+import { BsCart4 } from 'react-icons/bs';
+import { AuthProvider, useAuth } from './../components/Form/AuthContext';
+
+const StyledHeader = styled.header`
+  background-color: #119afa;
+  padding: 5px;
+`;
+const Logo = styled(Link)`
+  color: #fff;
+  text-decoration: none;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  // padding: 10px;
+  z-index: 3;
+  margin-right: 10px;
+  &:empty {
+    display: flex;
+  }
+
+  @media screen and (max-width: 768px) {
+    font-size: 150px;
+  }
+
+  @media screen and (max-width: 480px) {
+    font-size: 100px;
+  }
+`;
+const LogoImage = styled.img`
+  max-width: 200px;
+  max-height: 200px;
+  margin-right: 10px;
+  display: ${props => props.hideWhenEmpty && props.src ? "block" : "none"};
+  @media screen and (max-width: 768px) {
+    max-width: 180px;
+    max-height: 180px;
+  }
+
+  @media screen and (max-width: 480px) {
+    max-width: 100px;
+    max-height: 100px;
+  }
+`;
+const Wrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  padding: 20px 0 0 0;
+`;
+const DropdownMenu = styled.div`
+  position: absolute;
+  top: 100%;
+  left: 0;
+  display: none;
+  padding: 0px 0px 20px 0px;
+  width: 200px;
+  height: 300px;
+  overflow-y: auto;
+  z-index: 3;
+
+  &.account{
+    height: 80px;
+  }
+
+  /* Custom scroll styling */
+  ::-webkit-scrollbar {
+    width: 6px; /* Adjust the width for the scrollbar */
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: #f1f1f1; /* Set the background color of the scrollbar track */
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: #119afa; /* Set the color of the scrollbar thumb */
+    border-radius: 3px; /* Adjust the border radius for the scrollbar thumb */
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #0a80d6; /* Set the color of the scrollbar thumb on hover */
+  }
+`;
+const StyledNav = styled.nav`
+  ${props =>
+    props.mobileNavActive
+      ? `
+    display: block;
+  `
+      : `
+    display: none;
+  `}
+  gap: 15px;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 70px 20px 20px;
+  background-color: #119afa;
+  @media screen and (min-width: 768px) {
+    display: flex;
+    position: static;
+    padding: 0;
+  }
+`;
+const NavLink = styled.a`
+  display: block;
+  color: #fff;
+  text-decoration: none;
+  padding: 10px 0;
+  position: relative;
+  @media screen and (min-width: 768px) {
+    padding: 0 0 10px 0;
+  }
+
+  &:hover {
+  }
+
+  &:hover + ${DropdownMenu} {
+    display: block;
+  }
+`;
+const DropdownLink = styled(Link)`
+  display: block;
+  color: #000;
+  background: #fff;
+  text-decoration: none;
+  padding: 5px;
+  &:hover {
+    background-color: #f2f2f2;
+  }
+  &.parent {
+    color: #fff;
+    background: #63d0f7;
+    border-bottom: 1px solid black;
+    font-size: 18px;
+  }
+  &.child {
+    background: #fff;
+    border-bottom: 1px solid black;
+    font-size: 16px;
+  }
+`;
+const DropdownWrapper = styled.div`
+  position: relative;
+  &:hover ${DropdownMenu} {
+    display: block;
+  }
+
+  &:hover ${NavLink} {
+  }
+`;
+const NavButton = styled.button`
+  background-color: transparent;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  color: white;
+  cursor: pointer;
+  position: relative;
+  z-index: 3;
+  @media screen and (min-width: 768px) {
+    display: none;
+  }
+`;
+const Icon = styled(AiFillHeart)`
+  padding-top: 5px; /* Add margin top value for the icon here */
+`;
+const BannerConainer = styled.div`
+  width: 100%;
+  height: 100px;
+  display: flex;
+  flex-direction: row;
+  margin-top: -10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+`
+const NoofItems = styled.span`
+  min-width: 30px;
+  padding:3px;
+  height: auto;
+  background: #b3c215;
+  color: #fff;
+  border-radius: 100%;
+
+  position: relative;
+  top: -25px;
+  left: 50%;
+  z-index: 0;
+`
+export default function Header() {
+  const { cartProducts } = useContext(CartContext);
+  const [mobileNavActive, setMobileNavActive] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [authors, setAuthors] = useState([]);
+  const [jwtToken, setJwtToken] = useState('');
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    // Use jwtToken here
+    setJwtToken(localStorage.getItem('jwtToken'));
+    setUserName(localStorage.getItem('UsernameForTainHlwar'));
+  }, [jwtToken]);
+
+  const handleLogout = () => {
+    // Clear the items in localStorage
+    localStorage.removeItem('jwtToken');
+    localStorage.removeItem('UsernameForTainHlwar');
+    localStorage.removeItem('UserIDforTainHlwar')
+
+    // Redirect to the logout or login page
+    window.location.href = '/'; // Replace with the URL you want to redirect to
+  };
+
+  useEffect(() => {
+    axios.get("/api/categories").then((result) => {
+      // console.log(result.data);
+      setCategories(result.data);
+    });
+    axios.get("/api/authors").then((result) => {
+      // console.log(result.data);
+      setAuthors(result.data);
+    });
+
+    console.log("Hello"+globalThis.window?.innerWidth)
+    console.log(localStorage.getItem('jwtToken'));
+    console.log(localStorage.getItem('UsernameForTainHlwar'))
+  }, []);
+
+
+
+  const logos = [];
+  const [logo, setLogo] = useState('');
+  useEffect(() => {
+    async function fetchLogoImage() {
+      // try {
+      //   const response = await axios.get('/api/events'); // Change the URL to your API endpoint
+      //   const activeEvent = response.data;
+      //   console.log("active Event"+activeEvent.image_path +" background_image_path" + activeEvent.background_image_path + " beside Or Up"+activeEvent.besideOrUp)
+      //   console.log("activeEvent:", activeEvent);
+
+      //   if (activeEvent.image_path && activeEvent.besideOrUp == 1){
+      //     for (let i = 0; i < logoCount; i++) {
+      //       console.log(i+""+activeEvent.image_path);
+      //       setLogo(activeEvent.image_path)
+
+      //       logos.push(
+      //         <Logo key={i} href={"/"}>
+      //           <LogoImage src={activeEvent.image_path} />
+      //         </Logo>
+      //       );
+      //     }
+      //   }
+      // } catch (error) {
+      //   console.error('Error fetching logo image:', error);
+      // }
+    }
+
+    fetchLogoImage();
+  }, []); 
+
+  const logoCount = 28;
+  const logosArray = Array.from({ length: logoCount }); // Create an array with 18 elements
+
+
+  return (
+    <StyledHeader>
+      <Center>
+        <BannerConainer>
+        {logosArray.map((_, index) => (
+          <img
+          key={index}
+          src={logo}
+          alt=""
+          
+          />
+
+      ))}
+        </BannerConainer>
+        <Logo href={"/"}>
+          <LogoImage src="https://drive.google.com/uc?export=view&id=1Yvgx39h6AUpcpfl1abUlwSEFo82eQm7O" hideWhenEmpty={true} />
+        </Logo>
+
+        <Wrapper>
+          {/* <Logo href={"/"}>Paradise</Logo> */}
+          <StyledNav mobileNavActive={mobileNavActive}>
+            <NavLink href={"/"}>ပင်မ စာမျက်နှာ</NavLink>
+            {/* <NavLink href={"/newarrivals"}>အသစ်ထွက်ရှိသောစာအုပ်များ</NavLink> */}
+            <DropdownWrapper>
+              <NavLink href={"/products"}>စာရေးဆရာများ</NavLink>
+              <DropdownMenu>
+                {authors.map((author) => (
+                  <DropdownLink
+                    href={`/authors/${author._id}`}
+                    key={author._id}
+                    className="child"
+                  >
+                    {author.name}
+                  </DropdownLink>
+                ))}
+              </DropdownMenu>
+            </DropdownWrapper>
+            <DropdownWrapper>
+              <NavLink href={"/categories"}>စာအုပ်အမျိုးအစားများ</NavLink>
+              <DropdownMenu>
+                {categories.map((category) => (
+                  <DropdownLink href={`/categories/${category._id}`} key={category._id}
+                    className={category.parent ? 'child' : 'parent'}
+                  >
+                    {category.name}
+                  </DropdownLink>
+                ))}
+              </DropdownMenu>
+            </DropdownWrapper>
+            <DropdownWrapper>
+              <NavLink href={"/categories"}>စာအုပ်အညွှန်းများ</NavLink>
+              <DropdownMenu>
+                {categories.map((category) => {
+                  if (category.parent) { }
+                  else {
+                    return (
+                      <DropdownLink
+                        href={`/categories/${category._id}`}
+                        key={category._id}
+                        {...category}
+                        className="child"
+                      >
+                        {category.name}
+                      </DropdownLink>
+                    );
+                  }
+                })}
+              </DropdownMenu>
+            </DropdownWrapper>
+            <DropdownWrapper>
+              <NavLink href={"/services"}>ဝန်ဆောင်မှုများ</NavLink>
+            </DropdownWrapper>
+            {/* <DropdownWrapper> */}
+              {/* {jwtToken ? (
+                <>
+                 
+                </>
+              ) : (
+                <>
+                  <NavLink href={"/signup"}>အကောင့်အသစ်ဖွင့်ရန်</NavLink>
+                  <NavLink href={"/login"}>အကောင့်ထဲသို့ဝင်ရန်</NavLink>
+                </>
+              )} */}
+               {/* <NavLink href={"/user-account"}>User Account</NavLink>
+                  <DropdownMenu className="account">
+                    <DropdownLink href={"/logout"}>Logout</DropdownLink>
+                  </DropdownMenu> */}
+            {/* </DropdownWrapper> */}
+
+            
+            <NavLink href={"/favourites"}>နှစ်သက်မှု💕</NavLink>
+            <DropdownWrapper>
+              {jwtToken === null && (
+                <>
+                <NavLink href={"/"}>မိမိအကောင့်</NavLink>
+                <DropdownMenu className="account">
+                  <DropdownLink href={"/signup"}>
+                    အကောင့်အသစ်ဖွင့်ရန်
+                  </DropdownLink>
+                  <DropdownLink href={"/login"}>
+                    အကောင့်ထဲသို့ဝင်ရန်
+                  </DropdownLink>
+                </DropdownMenu>
+                </>
+              )}
+              {jwtToken !== null && (
+                <>
+                  <NavLink href={"/"} style={{ marginTop: "3px" }}>{userName}</NavLink>
+                  <DropdownMenu className="account">
+                  <DropdownLink href="#" onClick={handleLogout}>
+                    Logout
+                  </DropdownLink>
+                </DropdownMenu>
+                </>
+              )}
+              
+            </DropdownWrapper>
+            <NavLink href={"/cart"}>
+              <NoofItems>{cartProducts.length}</NoofItems>
+              <BsCart4 size="25" color="#004380" style={{ top: -10 }} />
+            </NavLink>
+          </StyledNav>
+          <NavButton onClick={() => setMobileNavActive(prev => !prev)}>
+            <BarsIcon />
+          </NavButton>
+        </Wrapper>
+      </Center>
+    </StyledHeader>
+
+  );
+ }
